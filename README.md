@@ -321,7 +321,7 @@ const CommaArrayParam = {
 #### useQueryParam
 
 ```js
-useQueryParam<T>(name: string, paramConfig: QueryParamConfig<T>, rawQuery?: ParsedQuery):
+useQueryParam<T>(name: string, paramConfig: QueryParamConfig<T>, defaultUpdateType?: UrlUpdateType):
   [T | undefined, (newValue: T, updateType?: UrlUpdateType) => void]
 ```
 
@@ -330,10 +330,7 @@ return the decoded value and a setter for updating it.
 
 The setter takes two arguments `(newValue, updateType)` where updateType
 is one of `'pushIn' | 'push' | 'replaceIn' | 'replace'`, defaulting to
-`'pushIn'`.
-
-You may optionally pass in a rawQuery object, otherwise the query is derived
-from the location in the context.
+`'pushIn'`. You may optionally pass in a different default update type to the hook itself.
 
 **Example**
 
@@ -357,7 +354,7 @@ setFoo((latestFoo) => latestFoo + 150)
 #### useQueryParams
 
 ```js
-useQueryParams<QPCMap extends QueryParamConfigMap>(paramConfigMap: QPCMap):
+useQueryParams<QPCMap extends QueryParamConfigMap>(paramConfigMap: QPCMap, defaultUpdateType?: UrlUpdateType):
   [DecodedValueMap<QPCMap>, SetQuery<QPCMap>]
 ```
 
@@ -366,7 +363,7 @@ return an object with the decoded values and a setter for updating them.
 
 The setter takes two arguments `(newQuery, updateType)` where updateType
 is one of `'pushIn' | 'push' | 'replaceIn' | 'replace'`, defaulting to
-`'pushIn'`.
+`'pushIn'`. You may optionally pass in a different default update type to the hook itself.
 
 **Example**
 
