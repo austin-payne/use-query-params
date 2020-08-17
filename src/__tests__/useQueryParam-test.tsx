@@ -5,7 +5,7 @@ import {
   NumberParam,
   NumericArrayParam,
   DateParam,
-  JsonParam
+  JsonParam,
 } from 'serialize-query-params';
 import { QueryParamProvider, useQueryParam } from '../index';
 import { calledPushQuery, makeMockHistory, makeMockLocation } from './helpers';
@@ -39,11 +39,41 @@ describe('useQueryParam', () => {
     expect(calledPushQuery(history, 0)).toEqual({ foo: 'zzz', bar: 'xxx' });
   });
 
-  it('specific param type and update type', () => {
+  it('specific param type and update type through hook params', () => {
+    const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
+    const { result } = renderHook(
+      () => useQueryParam('foo', NumberParam, 'push'),
+      {
+        wrapper,
+      }
+    );
+    const [decodedValue, setter] = result.current;
+
+    expect(decodedValue).toBe(123);
+    setter(999);
+    expect(calledPushQuery(history, 0)).toEqual({ foo: '999' });
+  });
+
+  it('specific update type through setter param', () => {
     const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
     const { result } = renderHook(() => useQueryParam('foo', NumberParam), {
       wrapper,
     });
+    const [decodedValue, setter] = result.current;
+
+    expect(decodedValue).toBe(123);
+    setter(999, 'push');
+    expect(calledPushQuery(history, 0)).toEqual({ foo: '999' });
+  });
+
+  it('specific update type from setter param takes precedence over hook param', () => {
+    const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
+    const { result } = renderHook(
+      () => useQueryParam('foo', NumberParam, 'replace'),
+      {
+        wrapper,
+      }
+    );
     const [decodedValue, setter] = result.current;
 
     expect(decodedValue).toBe(123);
@@ -168,24 +198,24 @@ describe('useQueryParam', () => {
   });
 
   it('works with functional JsonParam updates', () => {
-    type ParamType = {a: number, b: string};
+    type ParamType = { a: number; b: string };
     const { wrapper, history } = setupWrapper({
       foo: '{"a":1,"b":"abc"}',
       bar: 'xxx',
     });
-    const { result } = renderHook(
-      () => useQueryParam('foo', JsonParam),
-      {
-        wrapper,
-      }
-    );
+    const { result } = renderHook(() => useQueryParam('foo', JsonParam), {
+      wrapper,
+    });
     const [decodedValue, setter] = result.current;
 
-    expect(decodedValue).toEqual({a: 1, b: 'abc'});
-    setter((latestValue: ParamType) => ({...latestValue, a: latestValue.a + 1}), 'push');
+    expect(decodedValue).toEqual({ a: 1, b: 'abc' });
+    setter(
+      (latestValue: ParamType) => ({ ...latestValue, a: latestValue.a + 1 }),
+      'push'
+    );
     expect(calledPushQuery(history, 0)).toEqual({ foo: '{"a":2,"b":"abc"}' });
 
-    setter((latestValue: ParamType) => ({...latestValue, b: "yyy"}), 'push');
+    setter((latestValue: ParamType) => ({ ...latestValue, b: 'yyy' }), 'push');
     expect(calledPushQuery(history, 1)).toEqual({ foo: '{"a":2,"b":"yyy"}' });
   });
 

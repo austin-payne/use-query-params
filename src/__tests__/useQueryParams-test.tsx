@@ -11,7 +11,12 @@ import {
 } from 'serialize-query-params';
 
 import { useQueryParams, QueryParamProvider } from '../index';
-import { makeMockHistory, makeMockLocation, calledPushQuery } from './helpers';
+import {
+  makeMockHistory,
+  makeMockLocation,
+  calledPushQuery,
+  calledReplaceQuery,
+} from './helpers';
 
 // helper to setup tests
 function setupWrapper(query: EncodedQuery) {
@@ -37,6 +42,48 @@ describe('useQueryParams', () => {
 
     expect(decodedQuery).toEqual({ foo: '123' });
     setter({ foo: 'zzz' });
+    expect(calledPushQuery(history, 0)).toEqual({ foo: 'zzz', bar: 'xxx' });
+  });
+
+  it('specific update type through hook param', () => {
+    const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
+    const { result } = renderHook(
+      () => useQueryParams({ foo: StringParam }, 'replace'),
+      {
+        wrapper,
+      }
+    );
+    const [decodedQuery, setter] = result.current;
+
+    expect(decodedQuery).toEqual({ foo: '123' });
+    setter({ foo: 'zzz' });
+    expect(calledReplaceQuery(history, 0)).toEqual({ foo: 'zzz' });
+  });
+
+  it('specific update type through setter param', () => {
+    const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
+    const { result } = renderHook(() => useQueryParams({ foo: StringParam }), {
+      wrapper,
+    });
+    const [decodedQuery, setter] = result.current;
+
+    expect(decodedQuery).toEqual({ foo: '123' });
+    setter({ foo: 'zzz' }, 'replace');
+    expect(calledReplaceQuery(history, 0)).toEqual({ foo: 'zzz' });
+  });
+
+  it('specific update type from setter param takes precedence over hook param', () => {
+    const { wrapper, history } = setupWrapper({ foo: '123', bar: 'xxx' });
+    const { result } = renderHook(
+      () => useQueryParams({ foo: StringParam }, 'replace'),
+      {
+        wrapper,
+      }
+    );
+    const [decodedQuery, setter] = result.current;
+
+    expect(decodedQuery).toEqual({ foo: '123' });
+    setter({ foo: 'zzz' }, 'pushIn');
     expect(calledPushQuery(history, 0)).toEqual({ foo: 'zzz', bar: 'xxx' });
   });
 
@@ -290,10 +337,10 @@ describe('useQueryParams', () => {
     );
     const [decodedValue, setter] = result.current;
 
-    expect(decodedValue).toEqual({ foo: {a: 1, b: 'abc'}, bar: 'xxx' });
+    expect(decodedValue).toEqual({ foo: { a: 1, b: 'abc' }, bar: 'xxx' });
     setter(
       (latestQuery: any) => ({
-        foo: {...latestQuery.foo, a: latestQuery.foo.a + 1},
+        foo: { ...latestQuery.foo, a: latestQuery.foo.a + 1 },
       }),
       'pushIn'
     );

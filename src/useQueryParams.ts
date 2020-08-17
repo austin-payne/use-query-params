@@ -115,7 +115,8 @@ function getLatestDecodedValues<QPCMap extends QueryParamConfigMap>(
  * return an object with the decoded values and a setter for updating them.
  */
 export const useQueryParams = <QPCMap extends QueryParamConfigMap>(
-  paramConfigMap: QPCMap
+  paramConfigMap: QPCMap,
+  defaultUpdateType?: UrlUpdateType
 ): [DecodedValueMap<QPCMap>, SetQuery<QPCMap>] => {
   const { location, getLocation, setLocation } = useLocationContext();
 
@@ -164,6 +165,7 @@ export const useQueryParams = <QPCMap extends QueryParamConfigMap>(
     paramConfigMap,
     setLocation,
     getLocation,
+    defaultUpdateType,
   };
   const setQueryDepsRef = React.useRef(setQueryDeps);
   setQueryDepsRef.current = setQueryDeps;
@@ -197,7 +199,7 @@ export const useQueryParams = <QPCMap extends QueryParamConfigMap>(
       }
 
       // update the URL
-      deps.setLocation(encodedChanges, updateType);
+      deps.setLocation(encodedChanges, updateType ?? deps.defaultUpdateType);
     },
     []
   );

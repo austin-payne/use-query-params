@@ -81,7 +81,8 @@ function getLatestDecodedValue<D, D2 = D>(
  */
 export const useQueryParam = <D, D2 = D>(
   name: string,
-  paramConfig: QueryParamConfig<D, D2> = StringParam as QueryParamConfig<any>
+  paramConfig: QueryParamConfig<D, D2> = StringParam as QueryParamConfig<any>,
+  defaultUpdateType?: UrlUpdateType
 ): [D2, (newValue: NewValueType<D>, updateType?: UrlUpdateType) => void] => {
   const { location, getLocation, setLocation } = useLocationContext();
 
@@ -119,6 +120,7 @@ export const useQueryParam = <D, D2 = D>(
     name,
     setLocation,
     getLocation,
+    defaultUpdateType,
   };
   const setValueDepsRef = React.useRef(setValueDeps);
   setValueDepsRef.current = setValueDeps;
@@ -150,7 +152,10 @@ export const useQueryParam = <D, D2 = D>(
     }
 
     // update the URL
-    deps.setLocation({ [deps.name]: newEncodedValue }, updateType);
+    deps.setLocation(
+      { [deps.name]: newEncodedValue },
+      updateType ?? deps.defaultUpdateType
+    );
   },
   []);
 
